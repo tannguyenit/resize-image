@@ -1,0 +1,10 @@
+version: "3"
+services:
+    nginx:
+      image: openresty/openresty:alpine-fat
+      volumes: 
+      - "./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
+      - "./images/:/opt/img/"
+      - "./logs/:/var/log/nginx/"
+      ports: 
+      - "8080:8080"
