@@ -10,3 +10,4 @@
 2022/02/09 13:32:27 [error] 9#9: *2 open() "/opt/img/index.png/crop/200x300/index.png" failed (20: Not a directory), client: 192.168.80.1, server: app, request: "GET /crop/200x300/index.png HTTP/1.1", host: "localhost:8080"
 2022/02/09 13:32:32 [error] 9#9: *1 open() "/opt/img/index.png/crop/200x300/index.png" failed (20: Not a directory), client: 192.168.80.1, server: app, request: "GET /crop/200x300/index.png HTTP/1.1", host: "localhost:8080"
 2022/02/09 13:33:18 [error] 9#9: *1 open() "/opt/img/200/crop/200x300/index.png" failed (2: No such file or directory), client: 192.168.80.1, server: app, request: "GET /crop/200x300/index.png HTTP/1.1", host: "localhost:8080"
+2022/02/10 04:49:56 [error] 7#7: *1 open() "/opt/app/static/favicon.ico" failed (2: No such file or directory), client: 192.168.144.1, server: app, request: "GET /favicon.ico HTTP/1.1", host: "localhost:8081", referrer: "http://localhost:8081/crop/200x300/index.png"

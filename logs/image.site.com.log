@@ -27,3 +27,6 @@
 192.168.80.1 - - [09/Feb/2022:13:38:31 +0000] "GET /crop/900x900/index.png HTTP/1.1" 200 363377 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
 192.168.80.1 - - [09/Feb/2022:14:18:22 +0000] "GET /resize/900x900/index.png HTTP/1.1" 200 161083 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
 192.168.80.1 - - [09/Feb/2022:14:18:35 +0000] "GET /resize/900x200/index.png HTTP/1.1" 200 41299 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
+192.168.144.1 - - [10/Feb/2022:04:49:55 +0000] "GET /crop/200x300/index.png HTTP/1.1" 200 28126 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
+192.168.144.1 - - [10/Feb/2022:04:49:56 +0000] "GET /favicon.ico HTTP/1.1" 404 561 "http://localhost:8081/crop/200x300/index.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
+192.168.144.1 - - [10/Feb/2022:04:50:12 +0000] "GET /crop/200x500/index.png HTTP/1.1" 200 41901 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"

@@ -1,7 +1,7 @@
 version: "3"
 services:
     nginx:
-      image: openresty/openresty:alpine-fat
+      image: openresty/openresty:alpine
       volumes: 
       - "./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
       - "./images/:/opt/img/"
