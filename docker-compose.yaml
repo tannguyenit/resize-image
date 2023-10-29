@@ -6,5 +6,5 @@ services:
       - "./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
       - "./images/:/opt/img/"
       - "./logs/:/var/log/nginx/"
-      ports: 
+      ports:
       - "8080:8080"

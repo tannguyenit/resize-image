@@ -1,0 +1,182 @@
+load_module "modules/ngx_http_image_filter_module.so";
+worker_processes  1;
+user root;  
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    lua_code_cache off;
+    lua_need_request_body on;
+    gzip  on;
+    resolver 127.0.0.11 ipv6=off;          
+    real_ip_header     X-Forwarded-For;
+    real_ip_recursive on;
+    gzip_min_length  2k;
+    gzip_buffers   4 16k;
+    gzip_comp_level 4;
+    gzip_types       text/plain  text/css  image/png  application/javascript image/jpeg image/gif;
+    
+    proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=nginx_cache:10M max_size=100M inactive=40d;
+
+    # front facing virtual host for caching
+    server {
+        listen 80;
+        server_name proxy_server;
+        
+        location /img/ {
+            proxy_pass http://127.0.0.1:10177;
+            proxy_cache nginx_cache;
+            proxy_cache_key "$proxy_host$uri$is_args$args";
+            # proxy_cache_lock on; # Allow only one request
+            proxy_cache_valid 30d;  # Cache valid images for 30 days.
+            expires 30d;
+        }
+    }
+
+
+
+
+
+
+    # server {
+    #     listen       80;
+    #     server_name  app_proxy;
+    #     # charset utf-8;
+    #     # default_type text/html;
+
+    #     access_log      /var/log/nginx/app_proxy.log;
+    #     error_log       /var/log/nginx/app_proxy-error.log;
+    #     # image_filter_buffer 50M;
+    #     # image_filter_jpeg_quality 95;
+    #     # error_page   415 = /empty;
+
+    #     location / {
+    #         proxy_set_header   X-Real-IP             $remote_addr;
+    #         proxy_set_header   X-Forwarded-For       $proxy_add_x_forwarded_for;
+    #         proxy_set_header X-Forwarded-Proto https;
+    #         proxy_set_header       Host $host;
+    #         proxy_pass http://127.0.0.1:10177;
+    #         proxy_read_timeout 3600;
+    #         proxy_connect_timeout 300s;
+
+    #         proxy_cache nginx_cache;
+    #         proxy_cache_key "$proxy_host$uri$is_args$args";
+
+    #         proxy_cache_valid 200 1w;
+    #         proxy_cache_valid any 1m;
+    #         proxy_cache_use_stale error timeout invalid_header updating;
+    #         proxy_ignore_headers Cache-Control;
+    #         proxy_ignore_headers Set-Cookie;
+    #         proxy_set_header Cookie "";
+    #     }
+    # }
+
+    # server {
+    #     listen       8080;
+    #     server_name  app;
+    #     charset utf-8;
+    #     default_type text/html;
+
+    #     access_log      /var/log/nginx/image.site.com.log;
+    #     error_log       /var/log/nginx/image.site.com-error.log;
+    #     image_filter_buffer 50M;
+    #     image_filter_jpeg_quality 95;
+    #     error_page   415 = /empty;
+
+    #     location / {
+    #        default_type text/plain;
+    #        index index.html index.htm;
+    #     }
+    #     location = /favicon.ico {
+    #         root /opt/app/static;
+    #     }
+
+    #     location ~ ^/(?<width>\d+)x(?<height>\d+)/(?<name>.*)$ {
+    #         image_filter resize $width $height;
+    #         alias /opt/img/$name;
+    #     }
+
+    #     location ~ ^/resize/(?<width>\d+)x(?<height>\d+)/(?<name>.*)$ {
+    #         image_filter resize $width $height;
+    #         alias /opt/img/$name;
+    #     }
+
+    #     location ~ ^/cusers/(?<width>\d+)x(?<height>\d+)/(?<name>.*)$ {
+    #         image_filter crop $width $height;
+    #         alias /opt/img/$name;
+    #     }
+
+    #     location ~ ^/crop/(?<width>\d+)x(?<height>\d+)/(?<name>.*)$ {
+    #         image_filter crop $width $height;
+    #         alias /opt/img/$name;
+    #     }
+
+    #     location = /empty {
+    #         empty_gif;
+    #     }
+    #     error_page   500 502 503 504  /50x.html;
+    #     location = /50x.html {
+    #         root   html;
+    #     }
+    # }
+
+    # resizing server
+    server {
+        listen 10177;
+        server_name image_resize_server;
+        location ~ ^/img/([0-9]+)x([0-9]+)/(.+) {
+            error_page 415 =404 /empty.gif;
+            image_filter_buffer 20M;
+            image_filter_jpeg_quality 75; # Desired JPG quality
+            image_filter_interlace on; # For progressive JPG
+            image_filter resize $1 $2;
+            rewrite ^ $request_uri;
+            rewrite ^/img/([0-9]+)x([0-9]+)/(.*) $3 break;
+            return 400;
+            proxy_pass http://127.0.0.1:10178/img/$uri;
+        }
+    }
+
+    # back-end virtual host for retrieving file from AWS
+    server {
+        listen 10178;
+        server_name second_proxy_server;
+        resolver 8.8.8.8;  # Use Google for DNS.
+        resolver_timeout 60s;
+        set $backend 'test-chat-like.s3.us-west-2.amazonaws.com';
+
+        proxy_buffering off;
+        proxy_http_version 1.1;
+        proxy_pass_request_body off;  # Not needed by AWS.
+        proxy_pass_request_headers off;
+        # Clean up the headers going to and from S3.
+        proxy_hide_header "x-amz-id-2";
+        proxy_hide_header "x-amz-request-id";
+        proxy_hide_header "x-amz-storage-class";
+        proxy_hide_header "Set-Cookie";
+        proxy_ignore_headers "Set-Cookie";
+        proxy_connect_timeout   60;
+        proxy_send_timeout      60;
+        proxy_read_timeout      60;
+
+        access_log      /var/log/nginx/aws_proxy.log;
+        error_log       /var/log/nginx/aws_proxy-error.log;
+
+        location ~ ^/img/(.+) {
+            rewrite ^ $request_uri;
+            rewrite ^/img/(.*) $1 break;
+            return 400;
+    
+            proxy_pass http://$backend/$uri;
+            error_page 415 =404 /empty.gif;
+            proxy_cache nginx_cache;
+            proxy_cache_key "temp_$proxy_host$uri$is_args$args";
+            # proxy_cache_lock on; # Allow only one request
+            proxy_cache_valid 60s;
+            expires 60s;
+        }
+    }
+}
